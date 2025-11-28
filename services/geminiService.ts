@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Book } from "../types";
 
 // Initialize Gemini
+// Note: process.env.API_KEY is replaced by the bundler or polyfilled
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
@@ -38,24 +39,14 @@ export const getBookRecommendations = async (query: string): Promise<Book[]> => 
 
     const rawText = response.text || "[]";
     
-    // Robust parsing: Find the first '[' that is followed by a '{' (allowing for whitespace)
-    // This avoids matching brackets in conversational text like "Here is a list [of books]:"
-    const jsonArrayMatch = rawText.match(/\[\s*\{/);
+    // Robust parsing: Find the widest possible JSON array structure
+    const firstOpen = rawText.indexOf('[');
+    const lastClose = rawText.lastIndexOf(']');
     
     let cleanText = "[]";
-    
-    if (jsonArrayMatch && jsonArrayMatch.index !== undefined) {
-        const start = jsonArrayMatch.index;
-        const end = rawText.lastIndexOf(']');
-        if (end > start) {
-            cleanText = rawText.substring(start, end + 1);
-        }
-    } else if (rawText.trim().startsWith('[')) {
-        // Fallback for simple arrays or empty arrays
-        const end = rawText.lastIndexOf(']');
-        if (end !== -1) {
-            cleanText = rawText.substring(0, end + 1);
-        }
+
+    if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+        cleanText = rawText.substring(firstOpen, lastClose + 1);
     }
 
     let data: any[] = [];

@@ -38,16 +38,9 @@
 }
 </script>
 <script>
-  // Robust polyfill for DOMException to resolve potential runtime issues with dependencies
-  // that rely on the deprecated node-domexception package behavior in browser environments.
-  if (typeof window !== 'undefined' && typeof window.DOMException === 'undefined') {
-    window.DOMException = class DOMException extends Error {
-      constructor(message, name) {
-        super(message);
-        this.name = name || 'Error';
-      }
-    };
-  }
+  // Polyfill process for browser environment to prevent ReferenceErrors
+  // This is required because Vite/Browser implementations don't always shim 'process'
+  window.process = window.process || { env: {} };
 </script>
 </head>
   <body>
