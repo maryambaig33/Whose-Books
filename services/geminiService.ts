@@ -38,16 +38,37 @@ export const getBookRecommendations = async (query: string): Promise<Book[]> => 
 
     const rawText = response.text || "[]";
     
-    // Robust parsing: extract JSON array substring to handle potential extra text
-    const start = rawText.indexOf('[');
-    const end = rawText.lastIndexOf(']');
+    // Robust parsing: Find the first '[' that is followed by a '{' (allowing for whitespace)
+    // This avoids matching brackets in conversational text like "Here is a list [of books]:"
+    const jsonArrayMatch = rawText.match(/\[\s*\{/);
     
-    if (start === -1 || end === -1) {
+    let cleanText = "[]";
+    
+    if (jsonArrayMatch && jsonArrayMatch.index !== undefined) {
+        const start = jsonArrayMatch.index;
+        const end = rawText.lastIndexOf(']');
+        if (end > start) {
+            cleanText = rawText.substring(start, end + 1);
+        }
+    } else if (rawText.trim().startsWith('[')) {
+        // Fallback for simple arrays or empty arrays
+        const end = rawText.lastIndexOf(']');
+        if (end !== -1) {
+            cleanText = rawText.substring(0, end + 1);
+        }
+    }
+
+    let data: any[] = [];
+    try {
+        data = JSON.parse(cleanText);
+    } catch (parseError) {
+        console.error("JSON Parse failed:", parseError, "Raw:", rawText);
         return [];
     }
 
-    const cleanText = rawText.substring(start, end + 1);
-    const data = JSON.parse(cleanText);
+    if (!Array.isArray(data)) {
+        return [];
+    }
 
     // Augment with frontend-specific IDs and image seeds
     return data.map((item: any, index: number) => ({
