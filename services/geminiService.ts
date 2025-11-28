@@ -36,9 +36,17 @@ export const getBookRecommendations = async (query: string): Promise<Book[]> => 
       },
     });
 
-    // Clean potential markdown code blocks (e.g. ```json ... ```)
     const rawText = response.text || "[]";
-    const cleanText = rawText.replace(/```(json)?/g, "").trim();
+    
+    // Robust parsing: extract JSON array substring to handle potential extra text
+    const start = rawText.indexOf('[');
+    const end = rawText.lastIndexOf(']');
+    
+    if (start === -1 || end === -1) {
+        return [];
+    }
+
+    const cleanText = rawText.substring(start, end + 1);
     const data = JSON.parse(cleanText);
 
     // Augment with frontend-specific IDs and image seeds
