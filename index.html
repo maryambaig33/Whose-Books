@@ -38,9 +38,15 @@
 }
 </script>
 <script>
-  // Ensure DOMException is available globally to prevent issues with transitive dependencies
+  // Robust polyfill for DOMException to resolve potential runtime issues with dependencies
+  // that rely on the deprecated node-domexception package behavior in browser environments.
   if (typeof window !== 'undefined' && typeof window.DOMException === 'undefined') {
-    window.DOMException = Error;
+    window.DOMException = class DOMException extends Error {
+      constructor(message, name) {
+        super(message);
+        this.name = name || 'Error';
+      }
+    };
   }
 </script>
 </head>
