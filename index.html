@@ -37,6 +37,12 @@
   }
 }
 </script>
+<script>
+  // Ensure DOMException is available globally to prevent issues with transitive dependencies
+  if (typeof window !== 'undefined' && typeof window.DOMException === 'undefined') {
+    window.DOMException = Error;
+  }
+</script>
 </head>
   <body>
     <div id="root"></div>
