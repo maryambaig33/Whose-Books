@@ -2,8 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Book } from "../types";
 
 // Initialize Gemini
-// Note: process.env.API_KEY is replaced by the bundler or polyfilled
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// We use a fallback string to prevent the app from crashing on load if the key is missing.
+// The actual API calls will fail gracefully if the key is invalid.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "missing-key-placeholder" });
 
 /**
  * Uses Gemini to generate a list of books based on a natural language query.
